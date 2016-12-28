@@ -22,9 +22,10 @@ end_fact_check_regex = re.compile(ur'^\s*[Ee][Nn][Dd]\s*$',
 
 fact_check_regex = re.compile(ur'^\s*NPR\s*:', re.UNICODE)
 continuation_regex = re.compile(ur'^\s*CONT\s*:', re.UNICODE)
-# list_regex = re.compile(ur'^\s*LIST\s*:', re.UNICODE)
+list_regex = re.compile(ur'^\s*LIST\s*:', re.UNICODE)
 speaker_regex = re.compile(ur'^[A-Z\s.-]+(\s\[.*\])?:', re.UNICODE)
 soundbite_regex = re.compile(ur'^\s*:', re.UNICODE)
+
 
 extract_fact_metadata_regex = re.compile(
     ur'^\s*(<.*?>)?NPR\s*:\s*(([A-Za-z0-9]{2,3})-[A-Za-z0-9-]+):?\W(.*)',
@@ -55,6 +56,7 @@ def transform_fact_check(paragraphs, doc):
             combined_contents += unicode(content)
 
         m = extract_cont_metadata_regex.match(combined_contents)
+        # l = extract_list_metadata_regex.match(combined_contents)
 
         if m:
             # Append paragraph contents to the wrapper
@@ -63,15 +65,23 @@ def transform_fact_check(paragraphs, doc):
                 clean_text = m.group(1) + m.group(2)
             else:
                 clean_text = m.group(2)
-                logger.info(clean_text)
-                l = extract_list_metadata_regex.match(clean_text)
-
-                if l:
-                    logger.info('there is a list! %s' % l.group(2))
             clean_paragraphs.append({'text': clean_text})
+        # if l:
+        #     logger.info('here!')
+        #     # Append paragraph contents to the wrapper
+        #     # Check to see if the slug is on this child tag
+        #     if l.group(1):
+        #         clean_text = l.group(1) + l.group(2)
+        #     else:
+        #         clean_text = l.group(2)
+        #     clean_paragraphs.append({'text': clean_text})
+        #     logger.info(clean_text)
         else:
             # Check to see if the slug is on this child tag
             m = extract_fact_metadata_regex.match(combined_contents)
+            # l = extract_list_metadata_regex.match(combined_contents)
+            # if l:
+            #     logger.info('l match: %s' % l.group(2).lower)
             if m:
                 slug = m.group(2).lower()
                 slugs.append(slug)
@@ -266,6 +276,11 @@ def parse(doc):
             logger.debug('Fact Check Continuation Paragraph. Remove it')
             paragraph.extract()
         # TODO Remove CONT paragraphs
+        # elif list_regex.match(text):
+        #     logger.info('List found')
+        #     paragraph.extract()
+        #     logger.info(paragraph)
+        # # TODO Format list paragraphs
         elif fact_check_regex.match(text):
             number_of_fact_checks += 1
             logger.debug('FactCheck Paragraph. Add cont & transform')
@@ -278,6 +293,9 @@ def parse(doc):
                     continue
                 if continuation_regex.match(sibling.get_text()):
                     paragraphs.append(copy.copy(sibling))
+                # if list_regex.match(sibling.get_text()):
+                #     logger.info('list: %s' % copy.copy(sibling))
+                #     paragraphs.append(copy.copy(sibling))
                 else:
                     break
             markup = transform_fact_check(paragraphs, doc)
