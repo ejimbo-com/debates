@@ -136,8 +136,11 @@ def create_list(uncleaned_list):
     logger.info('did i actually do something right? %s' % uncleaned_list)
     for item in uncleaned_list:
         logger.info('item: %s' % item)
-        # clean_text = item
-    return 'None???'
+        list_items = ''
+        list_items += '<li>%s</li>' % item
+    logger.info(list_items)
+    # list = '<ul>'
+    return 'list'
 
 def transform_speaker(paragraph):
     """
