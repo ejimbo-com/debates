@@ -22,7 +22,6 @@ end_fact_check_regex = re.compile(ur'^\s*[Ee][Nn][Dd]\s*$',
 
 fact_check_regex = re.compile(ur'^\s*NPR\s*:', re.UNICODE)
 continuation_regex = re.compile(ur'^\s*CONT\s*:', re.UNICODE)
-# list_regex = re.compile(ur'^\s*LIST\s*:', re.UNICODE)
 speaker_regex = re.compile(ur'^[A-Z\s.-]+(\s\[.*\])?:', re.UNICODE)
 soundbite_regex = re.compile(ur'^\s*:', re.UNICODE)
 
@@ -37,6 +36,8 @@ extract_soundbite_metadata_regex = re.compile(
     ur'^\s*(?:<.*?>)?\s*:\[\((.*)\)\]', re.UNICODE)
 extract_list_metadata_regex = re.compile(
     ur'^\s*(<.*?>)?LIST\s*:\s*(.*)', re.UNICODE)
+extract_list_items_regex = re.compile(
+    ur'“(.*?)”', re.UNICODE)
 
 # Handle duplicate slugs warning
 slugs = []
@@ -54,6 +55,7 @@ def transform_fact_check(paragraphs, doc):
         for content in paragraph.contents:
             combined_contents += unicode(content)
 
+        # if CONT:, remove
         m = extract_cont_metadata_regex.match(combined_contents)
 
         if m:
@@ -62,12 +64,25 @@ def transform_fact_check(paragraphs, doc):
             if m.group(1):
                 clean_text = m.group(1) + m.group(2)
             else:
-                clean_text = m.group(2)
-                logger.info(clean_text)
-                l = extract_list_metadata_regex.match(clean_text)
+                # clean_text = m.group(2)
+                l = extract_list_metadata_regex.match(m.group(2))
 
                 if l:
-                    logger.info('there is a list! %s' % l.group(2))
+                    logger.info('l: %s' % l.group(2))
+                    # clean_text = 'hello?'
+                    i = extract_list_items_regex.findall(l.group(2))
+                    logger.info('extracted elements: %s' % i)
+
+                    if i:
+                        create_list(i)
+                        logger.info('is this how this works? %s' % create_list(i))
+                        clean_text = create_list(i)
+                        # for item in i:
+                        #     logger.info('item: %s' % item)
+                        #     clean_text = item
+                else:
+                    clean_text = m.group(2)
+
             clean_paragraphs.append({'text': clean_text})
         else:
             # Check to see if the slug is on this child tag
@@ -117,6 +132,12 @@ def transform_fact_check(paragraphs, doc):
     markup = BeautifulSoup(fact_check_markup, "html.parser")
     return markup
 
+def create_list(uncleaned_list):
+    logger.info('did i actually do something right? %s' % uncleaned_list)
+    for item in uncleaned_list:
+        logger.info('item: %s' % item)
+        # clean_text = item
+    return 'None???'
 
 def transform_speaker(paragraph):
     """
