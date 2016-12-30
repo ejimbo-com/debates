@@ -68,18 +68,10 @@ def transform_fact_check(paragraphs, doc):
                 l = extract_list_metadata_regex.match(m.group(2))
 
                 if l:
-                    logger.info('l: %s' % l.group(2))
-                    # clean_text = 'hello?'
                     i = extract_list_items_regex.findall(l.group(2))
-                    logger.info('extracted elements: %s' % i)
-
                     if i:
                         create_list(i)
-                        logger.info('is this how this works? %s' % create_list(i))
                         clean_text = create_list(i)
-                        # for item in i:
-                        #     logger.info('item: %s' % item)
-                        #     clean_text = item
                 else:
                     clean_text = m.group(2)
 
@@ -133,14 +125,15 @@ def transform_fact_check(paragraphs, doc):
     return markup
 
 def create_list(uncleaned_list):
-    logger.info('did i actually do something right? %s' % uncleaned_list)
+    """
+    takes list of unicode strings and transforms
+    to an html list. sends back markup of list
+    """
+    list_items = ''
     for item in uncleaned_list:
-        logger.info('item: %s' % item)
-        list_items = ''
         list_items += '<li>%s</li>' % item
-    logger.info(list_items)
-    # list = '<ul>'
-    return 'list'
+    list = '<div class="embed"><ul>%s</ul></div>' % list_items
+    return list
 
 def transform_speaker(paragraph):
     """
