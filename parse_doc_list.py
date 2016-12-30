@@ -22,10 +22,8 @@ end_fact_check_regex = re.compile(ur'^\s*[Ee][Nn][Dd]\s*$',
 
 fact_check_regex = re.compile(ur'^\s*NPR\s*:', re.UNICODE)
 continuation_regex = re.compile(ur'^\s*CONT\s*:', re.UNICODE)
-list_regex = re.compile(ur'^\s*LIST\s*:', re.UNICODE)
 speaker_regex = re.compile(ur'^[A-Z\s.-]+(\s\[.*\])?:', re.UNICODE)
 soundbite_regex = re.compile(ur'^\s*:', re.UNICODE)
-
 
 extract_fact_metadata_regex = re.compile(
     ur'^\s*(<.*?>)?NPR\s*:\s*(([A-Za-z0-9]{2,3})-[A-Za-z0-9-]+):?\W(.*)',
@@ -38,6 +36,8 @@ extract_soundbite_metadata_regex = re.compile(
     ur'^\s*(?:<.*?>)?\s*:\[\((.*)\)\]', re.UNICODE)
 extract_list_metadata_regex = re.compile(
     ur'^\s*(<.*?>)?LIST\s*:\s*(.*)', re.UNICODE)
+extract_list_items_regex = re.compile(
+    ur'“(.*?)”', re.UNICODE)
 
 # Handle duplicate slugs warning
 slugs = []
@@ -55,8 +55,8 @@ def transform_fact_check(paragraphs, doc):
         for content in paragraph.contents:
             combined_contents += unicode(content)
 
+        # if CONT:, remove
         m = extract_cont_metadata_regex.match(combined_contents)
-        # l = extract_list_metadata_regex.match(combined_contents)
 
         if m:
             # Append paragraph contents to the wrapper
@@ -64,24 +64,20 @@ def transform_fact_check(paragraphs, doc):
             if m.group(1):
                 clean_text = m.group(1) + m.group(2)
             else:
-                clean_text = m.group(2)
+                l = extract_list_metadata_regex.match(m.group(2))
+
+                if l:
+                    i = extract_list_items_regex.findall(l.group(2))
+                    if i:
+                        create_list(i)
+                        clean_text = create_list(i)
+                else:
+                    clean_text = m.group(2)
+
             clean_paragraphs.append({'text': clean_text})
-        # if l:
-        #     logger.info('here!')
-        #     # Append paragraph contents to the wrapper
-        #     # Check to see if the slug is on this child tag
-        #     if l.group(1):
-        #         clean_text = l.group(1) + l.group(2)
-        #     else:
-        #         clean_text = l.group(2)
-        #     clean_paragraphs.append({'text': clean_text})
-        #     logger.info(clean_text)
         else:
             # Check to see if the slug is on this child tag
             m = extract_fact_metadata_regex.match(combined_contents)
-            # l = extract_list_metadata_regex.match(combined_contents)
-            # if l:
-            #     logger.info('l match: %s' % l.group(2).lower)
             if m:
                 slug = m.group(2).lower()
                 slugs.append(slug)
@@ -127,6 +123,16 @@ def transform_fact_check(paragraphs, doc):
     markup = BeautifulSoup(fact_check_markup, "html.parser")
     return markup
 
+def create_list(uncleaned_list):
+    """
+    takes list of unicode strings and transforms
+    to an html list. sends back markup of list
+    """
+    list_items = ''
+    for item in uncleaned_list:
+        list_items += '<li>%s</li>' % item
+    list = '<div class="embed"><ul>%s</ul></div>' % list_items
+    return list
 
 def transform_speaker(paragraph):
     """
@@ -276,11 +282,6 @@ def parse(doc):
             logger.debug('Fact Check Continuation Paragraph. Remove it')
             paragraph.extract()
         # TODO Remove CONT paragraphs
-        # elif list_regex.match(text):
-        #     logger.info('List found')
-        #     paragraph.extract()
-        #     logger.info(paragraph)
-        # # TODO Format list paragraphs
         elif fact_check_regex.match(text):
             number_of_fact_checks += 1
             logger.debug('FactCheck Paragraph. Add cont & transform')
@@ -293,9 +294,6 @@ def parse(doc):
                     continue
                 if continuation_regex.match(sibling.get_text()):
                     paragraphs.append(copy.copy(sibling))
-                # if list_regex.match(sibling.get_text()):
-                #     logger.info('list: %s' % copy.copy(sibling))
-                #     paragraphs.append(copy.copy(sibling))
                 else:
                     break
             markup = transform_fact_check(paragraphs, doc)

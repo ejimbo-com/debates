@@ -4,6 +4,7 @@ import re
 import copy
 import app_config
 import doc_config
+from parse_list import create_list
 from jinja2 import Environment, FileSystemLoader
 from bs4 import BeautifulSoup
 
@@ -24,6 +25,7 @@ fact_check_regex = re.compile(ur'^\s*NPR\s*:', re.UNICODE)
 continuation_regex = re.compile(ur'^\s*CONT\s*:', re.UNICODE)
 speaker_regex = re.compile(ur'^[A-Z\s.-]+(\s\[.*\])?:', re.UNICODE)
 soundbite_regex = re.compile(ur'^\s*:', re.UNICODE)
+shortcode_regex = re.compile(ur'^\s*\[%\s*.*\s*%\]\s*$', re.UNICODE)
 
 extract_fact_metadata_regex = re.compile(
     ur'^\s*(<.*?>)?NPR\s*:\s*(([A-Za-z0-9]{2,3})-[A-Za-z0-9-]+):?\W(.*)',
@@ -64,7 +66,6 @@ def transform_fact_check(paragraphs, doc):
             if m.group(1):
                 clean_text = m.group(1) + m.group(2)
             else:
-                # clean_text = m.group(2)
                 l = extract_list_metadata_regex.match(m.group(2))
 
                 if l:
@@ -124,16 +125,16 @@ def transform_fact_check(paragraphs, doc):
     markup = BeautifulSoup(fact_check_markup, "html.parser")
     return markup
 
-def create_list(uncleaned_list):
-    """
-    takes list of unicode strings and transforms
-    to an html list. sends back markup of list
-    """
-    list_items = ''
-    for item in uncleaned_list:
-        list_items += '<li>%s</li>' % item
-    list = '<div class="embed"><ul>%s</ul></div>' % list_items
-    return list
+# def create_list(uncleaned_list):
+#     """
+#     takes list of unicode strings and transforms
+#     to an html list. sends back markup of list
+#     """
+#     list_items = ''
+#     for item in uncleaned_list:
+#         list_items += '<li>%s</li>' % item
+#     list = '<div class="embed"><ul>%s</ul></div>' % list_items
+#     return list
 
 def transform_speaker(paragraph):
     """
