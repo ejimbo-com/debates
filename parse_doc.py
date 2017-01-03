@@ -4,7 +4,8 @@ import re
 import copy
 import app_config
 import doc_config
-from parse_list import create_list
+from parse_embeds import create_list
+from parse_embeds import shortcode_parser
 from jinja2 import Environment, FileSystemLoader
 from bs4 import BeautifulSoup
 
@@ -40,6 +41,7 @@ extract_list_metadata_regex = re.compile(
     ur'^\s*(<.*?>)?LIST\s*:\s*(.*)', re.UNICODE)
 extract_list_items_regex = re.compile(
     ur'“(.*?)”', re.UNICODE)
+extract_shortcode_regex = re.compile(ur'^\s*\[%\s*(.*)\s*%\]\s*$', re.UNICODE)
 
 # Handle duplicate slugs warning
 slugs = []
@@ -66,13 +68,12 @@ def transform_fact_check(paragraphs, doc):
             if m.group(1):
                 clean_text = m.group(1) + m.group(2)
             else:
-                l = extract_list_metadata_regex.match(m.group(2))
+                s = extract_shortcode_regex.match(m.group(2))
 
-                if l:
-                    i = extract_list_items_regex.findall(l.group(2))
-                    if i:
-                        create_list(i)
-                        clean_text = create_list(i)
+                if s:
+                    shortcode = s.group(1)
+                    shortcode_parser(shortcode)
+                    clean_text = shortcode_parser(shortcode)
                 else:
                     clean_text = m.group(2)
 
@@ -124,17 +125,6 @@ def transform_fact_check(paragraphs, doc):
     fact_check_markup = template.render(**context)
     markup = BeautifulSoup(fact_check_markup, "html.parser")
     return markup
-
-# def create_list(uncleaned_list):
-#     """
-#     takes list of unicode strings and transforms
-#     to an html list. sends back markup of list
-#     """
-#     list_items = ''
-#     for item in uncleaned_list:
-#         list_items += '<li>%s</li>' % item
-#     list = '<div class="embed"><ul>%s</ul></div>' % list_items
-#     return list
 
 def transform_speaker(paragraph):
     """
