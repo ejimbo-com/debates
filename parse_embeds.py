@@ -23,63 +23,63 @@ def shortcode_parser(shortcode):
     contents = extract_shortcode_items_regex.match(shortcode)
     embed_type = contents.group(1)
     embed_attributes = contents.group(2)
-
     try:
         embed = SHORTCODE_DICT[embed_type](embed_attributes)
         return embed
+        # need a fail safe in case shortcode embed type isn't found
     except KeyError:
         default()
 
-    # return embed
-
-def create_list(embed_attributes):
+def create_list(attrs):
     """
     takes list of unicode strings and transforms
     to an html list. sends back markup of list
     """
-    items = extract_list_items_regex.findall(embed_attributes)
+    items = extract_list_items_regex.findall(attrs)
     list_items = ''
     for item in items:
         list_items += '<li>%s</li>' % item
     embed = '<div class="embed"><ul>%s</ul></div>' % list_items
     return embed
-def create_graphic():
+def create_graphic(attrs):
     """
     TKTKTK
     """
-    logger.info('create graphic')
+    embed = '<div class="embed"><img class="graphic" src="%s" /></div>' % attrs
+    return embed
 
-def create_table():
+def create_table(attrs):
     """
     TKTKTK
     """
     logger.info('create table')
 
-def create_image():
+def create_image(attrs):
     """
     TKTKTK
     """
-    logger.info('create image')
+    embed = '<div class="embed"><img class="image" src="%s" /></div>' % attrs
+    return embed
 
-def create_youtube():
+def create_youtube(attrs):
     """
     TKTKTK
     """
     logger.info('create youtube')
 
-def create_tweet():
+def create_tweet(attrs):
     """
     TKTKTK
     """
     logger.info('create tweet')
 
-def create_facebook():
+def create_facebook(attrs):
     """
     TKTKTK
     """
     logger.info('create facebook')
 
-def create_link():
+def create_link(attrs):
     """
     TKTKTK
     """
