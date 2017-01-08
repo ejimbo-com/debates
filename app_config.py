@@ -51,13 +51,13 @@ except ImportError:
 """
 DEPLOYMENT
 """
-PRODUCTION_S3_BUCKET = 'apps.npr.org'
+PRODUCTION_S3_BUCKET = 'embeds.ejimbo.com'
 
-STAGING_S3_BUCKET = 'stage-apps.npr.org'
+STAGING_S3_BUCKET = 'debates-test'
 
-ASSETS_S3_BUCKET = 'assets.apps.npr.org'
+ASSETS_S3_BUCKET = 'assets.ejimbo.com'
 
-ARCHIVE_S3_BUCKET = 'election-backup.apps.npr.org'
+ARCHIVE_S3_BUCKET = ''
 
 DEFAULT_MAX_AGE = 20
 
@@ -125,7 +125,7 @@ AUTOINIT_LOADER = False
 """
 COPY EDITING
 """
-COPY_GOOGLE_DOC_KEY = '1z7TVK16JyhZRzk5ep-Uq5SH4lPTWmjCecvJ5vCp6lS0'
+COPY_GOOGLE_DOC_KEY = '1wN222ssUeITAYMkj1X1fZhOX8xo5r-2Tt1WwD7-ZREI' #CPR editors spreadsheet
 COPY_PATH = 'data/copy.xlsx'
 
 TRANSCRIPT_HTML_PATH = 'data/transcript.html'
@@ -151,13 +151,13 @@ SHARE_URL = 'http://%s/%s/' % (PRODUCTION_S3_BUCKET, PROJECT_SLUG)
 SERVICES
 """
 NPR_GOOGLE_ANALYTICS = {
-    'ACCOUNT_ID': 'UA-5828686-4',
+    'ACCOUNT_ID': '',
     'DOMAIN': PRODUCTION_S3_BUCKET,
     'TOPICS': ''  # e.g. '[1014,3,1003,1002,1001]'
 }
 
 VIZ_GOOGLE_ANALYTICS = {
-    'ACCOUNT_ID': 'UA-5828686-75'
+    'ACCOUNT_ID': 'UA-15051455-7' #CPR viz analytics
 }
 
 """
